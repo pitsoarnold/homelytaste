@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { useState } from "react";
 import { getProducts } from "@/lib/products.functions";
+import { OrderModal, type Product } from "@/components/OrderModal";
 import logoAsset from "@/assets/logo.asset.json";
 import heroAsset from "@/assets/cupcakes.asset.json";
 import aboutAsset from "@/assets/rusks-tray.asset.json";
@@ -9,17 +10,6 @@ import aboutAsset from "@/assets/rusks-tray.asset.json";
 const WHATSAPP_NUMBER = "26662119056";
 const NOTICE = "Please place your order at least 2 days before the day you need your baked goods.";
 
-type Product = {
-  id: string;
-  name: string;
-  description: string;
-  image_url: string;
-  price: number;
-  currency: string;
-  category: string;
-  is_bestseller: boolean;
-  sort_order: number;
-};
 
 const productsQuery = queryOptions({
   queryKey: ["products"],
