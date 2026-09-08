@@ -3,6 +3,8 @@ import { format, addDays, startOfDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
+export type SizeOption = { label: string; price: number };
+
 export type Product = {
   id: string;
   name: string;
@@ -13,7 +15,13 @@ export type Product = {
   category: string;
   is_bestseller: boolean;
   sort_order: number;
+  size_options?: SizeOption[] | null;
 };
+
+export function sizesOf(p: Product): SizeOption[] {
+  const s = p.size_options;
+  return Array.isArray(s) && s.length > 0 ? s : [{ label: "Standard", price: Number(p.price) }];
+}
 
 const WHATSAPP_NUMBER = "26653378522";
 const NOTICE = "Please place your order at least 2 days before the day you need your baked goods.";
