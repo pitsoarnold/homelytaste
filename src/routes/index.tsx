@@ -329,7 +329,9 @@ function Home() {
         </div>
       </footer>
 
-      {ordering && <OrderModal product={ordering} onClose={() => setOrdering(null)} />}
+      {ordering && (
+        <OrderModal product={ordering} products={products} onClose={() => setOrdering(null)} />
+      )}
     </div>
   );
 }
