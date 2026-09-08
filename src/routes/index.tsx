@@ -7,7 +7,7 @@ import logoAsset from "@/assets/logo.asset.json";
 import heroAsset from "@/assets/cupcakes.asset.json";
 import aboutAsset from "@/assets/rusks-tray.asset.json";
 
-const WHATSAPP_NUMBER = "26662119056";
+const WHATSAPP_NUMBER = "26653378522";
 const NOTICE = "Please place your order at least 2 days before the day you need your baked goods.";
 
 
@@ -275,11 +275,11 @@ function Home() {
 
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             <a
-              href="tel:+26653378522"
+              href="tel:+26662119056"
               className="rounded-3xl bg-secondary p-6 transition-transform hover:-translate-y-1"
             >
               <p className="text-sm font-semibold uppercase tracking-widest text-primary">Calls Only</p>
-              <p className="mt-2 text-lg font-medium text-secondary-foreground">(+266) 53378522</p>
+              <p className="mt-2 text-lg font-medium text-secondary-foreground">(+266) 62119056</p>
             </a>
             <a
               href={whatsappLink()}
@@ -288,7 +288,7 @@ function Home() {
               className="rounded-3xl bg-secondary p-6 transition-transform hover:-translate-y-1"
             >
               <p className="text-sm font-semibold uppercase tracking-widest text-primary">WhatsApp</p>
-              <p className="mt-2 text-lg font-medium text-secondary-foreground">(+266) 62119056</p>
+              <p className="mt-2 text-lg font-medium text-secondary-foreground">(+266) 53378522</p>
             </a>
             <a
               href="mailto:homelytaste.25@gmail.com"
@@ -321,7 +321,7 @@ function Home() {
             Handcrafted Delights for Every Occasion
           </p>
           <p className="text-sm text-secondary-foreground/60">
-            Calls: (+266) 53378522 · WhatsApp: (+266) 62119056 · homelytaste.25@gmail.com
+            Calls: (+266) 62119056 · WhatsApp: (+266) 53378522 · homelytaste.25@gmail.com
           </p>
           <p className="text-xs text-secondary-foreground/40">
             © {new Date().getFullYear()} Homely Taste. All rights reserved.
