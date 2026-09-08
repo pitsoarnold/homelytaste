@@ -25,6 +25,7 @@ export type Database = {
           is_bestseller: boolean
           name: string
           price: number
+          size_options: Json
           sort_order: number
         }
         Insert: {
@@ -37,6 +38,7 @@ export type Database = {
           is_bestseller?: boolean
           name: string
           price: number
+          size_options?: Json
           sort_order?: number
         }
         Update: {
@@ -49,6 +51,7 @@ export type Database = {
           is_bestseller?: boolean
           name?: string
           price?: number
+          size_options?: Json
           sort_order?: number
         }
         Relationships: []

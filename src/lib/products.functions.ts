@@ -8,7 +8,9 @@ export const getProducts = createServerFn({ method: "GET" }).handler(async () =>
   );
   const { data, error } = await supabasePublic
     .from("products")
-    .select("id, name, description, image_url, price, currency, category, is_bestseller, sort_order")
+    .select(
+      "id, name, description, image_url, price, currency, category, is_bestseller, sort_order, size_options",
+    )
     .order("sort_order", { ascending: true });
   if (error) throw new Error(error.message);
   return data ?? [];

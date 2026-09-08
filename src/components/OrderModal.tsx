@@ -3,6 +3,8 @@ import { format, addDays, startOfDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
+export type SizeOption = { label: string; price: number };
+
 export type Product = {
   id: string;
   name: string;
@@ -13,7 +15,13 @@ export type Product = {
   category: string;
   is_bestseller: boolean;
   sort_order: number;
+  size_options?: SizeOption[] | null;
 };
+
+export function sizesOf(p: Product): SizeOption[] {
+  const s = p.size_options;
+  return Array.isArray(s) && s.length > 0 ? s : [{ label: "Standard", price: Number(p.price) }];
+}
 
 const WHATSAPP_NUMBER = "26653378522";
 const NOTICE = "Please place your order at least 2 days before the day you need your baked goods.";
@@ -26,7 +34,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
-type Line = { product: Product; qty: number };
+type Line = { product: Product; qty: number; size: SizeOption };
 
 function orderReference() {
   return `HT-${Date.now().toString(36).toUpperCase().slice(-6)}`;
@@ -43,7 +51,10 @@ export function OrderModal({
 }) {
   const minDate = startOfDay(addDays(new Date(), 2));
 
-  const [lines, setLines] = useState<Line[]>([{ product, qty: 1 }]);
+  const [lines, setLines] = useState<Line[]>([
+    { product, qty: 1, size: sizesOf(product)[0]! },
+  ]);
+  const [search, setSearch] = useState("");
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [showCalendar, setShowCalendar] = useState(false);
   const [name, setName] = useState("");
@@ -54,14 +65,27 @@ export function OrderModal({
   const [touched, setTouched] = useState(false);
 
   const currency = product.currency;
-  const total = lines.reduce((sum, l) => sum + Number(l.product.price) * l.qty, 0);
+  const total = lines.reduce((sum, l) => sum + Number(l.size.price) * l.qty, 0);
   const valid = name.trim().length > 1 && phone.trim().length >= 6 && !!date && lines.length > 0;
+
+  const query = search.trim().toLowerCase();
+  const visible = products.filter(
+    (p) =>
+      !query ||
+      p.name.toLowerCase().includes(query) ||
+      p.category.toLowerCase().includes(query) ||
+      lines.some((l) => l.product.id === p.id),
+  );
+  const grouped = visible.reduce<Record<string, Product[]>>((acc, p) => {
+    (acc[p.category] ??= []).push(p);
+    return acc;
+  }, {});
 
   function toggleProduct(p: Product) {
     setLines((prev) =>
       prev.some((l) => l.product.id === p.id)
         ? prev.filter((l) => l.product.id !== p.id)
-        : [...prev, { product: p, qty: 1 }],
+        : [...prev, { product: p, qty: 1, size: sizesOf(p)[0]! }],
     );
   }
 
@@ -69,12 +93,23 @@ export function OrderModal({
     setLines((prev) => prev.map((l) => (l.product.id === id ? { ...l, qty: Math.max(1, qty) } : l)));
   }
 
+  function setSize(id: string, label: string) {
+    setLines((prev) =>
+      prev.map((l) =>
+        l.product.id === id
+          ? { ...l, size: sizesOf(l.product).find((s) => s.label === label) ?? l.size }
+          : l,
+      ),
+    );
+  }
+
   function summaryLines() {
     return lines.map(
       (l) =>
-        `• ${l.product.name} x${l.qty} — ${l.product.currency} ${(Number(l.product.price) * l.qty).toFixed(2)}`,
+        `• ${l.product.name} (${l.size.label}) x${l.qty} — ${l.product.currency} ${(Number(l.size.price) * l.qty).toFixed(2)}`,
     );
   }
+
 
   function buildMessage() {
     return [
