@@ -276,7 +276,9 @@ function Home() {
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             <a
               href="tel:+26662119056"
-...
+              className="rounded-3xl bg-secondary p-6 transition-transform hover:-translate-y-1"
+            >
+              <p className="text-sm font-semibold uppercase tracking-widest text-primary">Calls Only</p>
               <p className="mt-2 text-lg font-medium text-secondary-foreground">(+266) 62119056</p>
             </a>
             <a
