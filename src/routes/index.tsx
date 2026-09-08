@@ -65,64 +65,6 @@ function NoticeBanner() {
   );
 }
 
-function OrderModal({ product, onClose }: { product: Product; onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-accent/70 p-4 backdrop-blur-sm"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Order ${product.name}`}
-    >
-      <div
-        className="w-full max-w-md rounded-3xl bg-card p-8 shadow-luxe"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-start gap-4">
-          <img
-            src={product.image_url}
-            alt={product.name}
-            className="h-20 w-20 rounded-2xl object-cover"
-          />
-          <div>
-            <h3 className="text-2xl font-semibold">{product.name}</h3>
-            <p className="mt-1 text-lg font-medium text-primary">
-              {product.currency} {Number(product.price).toFixed(2)}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-6 rounded-2xl bg-muted p-4">
-          <p className="text-sm font-medium text-foreground">
-            <span aria-hidden="true">✦ </span>
-            {NOTICE}
-          </p>
-        </div>
-
-        <p className="mt-4 text-sm text-muted-foreground">
-          We bake everything to order. Tap below to continue on WhatsApp — your message is
-          pre-filled and ready to send.
-        </p>
-
-        <a
-          href={whatsappLink(product.name)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3.5 text-base font-semibold text-white transition-transform hover:scale-[1.02]"
-        >
-          <WhatsAppIcon className="h-5 w-5" />
-          Place Order on WhatsApp
-        </a>
-        <button
-          onClick={onClose}
-          className="mt-3 w-full rounded-full px-6 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
-        >
-          Not yet — keep browsing
-        </button>
-      </div>
-    </div>
-  );
-}
 
 function Home() {
   const { data: products } = useSuspenseQuery(productsQuery);
