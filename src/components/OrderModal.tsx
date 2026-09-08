@@ -15,7 +15,7 @@ export type Product = {
   sort_order: number;
 };
 
-const WHATSAPP_NUMBER = "26662119056";
+const WHATSAPP_NUMBER = "26653378522";
 const NOTICE = "Please place your order at least 2 days before the day you need your baked goods.";
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -160,7 +160,7 @@ export function OrderModal({
     doc.setFontSize(10);
     doc.text(doc.splitTextToSize(NOTICE, 500), 48, y);
     y += 28;
-    doc.text("Calls: (+266) 53378522  ·  WhatsApp: (+266) 62119056", 48, y);
+    doc.text("Calls: (+266) 62119056  ·  WhatsApp: (+266) 53378522", 48, y);
     y += 14;
     doc.text("homelytaste.25@gmail.com", 48, y);
     doc.save(`Homely-Taste-Order-${reference}.pdf`);
