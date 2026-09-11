@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      orders: {
+        Row: {
+          created_at: string
+          currency: string
+          customer_name: string
+          id: string
+          items: Json
+          needed_date: string
+          notes: string | null
+          occasion: string | null
+          phone: string
+          reference: string
+          status: string
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          customer_name: string
+          id?: string
+          items?: Json
+          needed_date: string
+          notes?: string | null
+          occasion?: string | null
+          phone: string
+          reference: string
+          status?: string
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          customer_name?: string
+          id?: string
+          items?: Json
+          needed_date?: string
+          notes?: string | null
+          occasion?: string | null
+          phone?: string
+          reference?: string
+          status?: string
+          total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string

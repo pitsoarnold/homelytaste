@@ -2,6 +2,8 @@ import { useState } from "react";
 import { format, addDays, startOfDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import logoAsset from "@/assets/logo.asset.json";
+import { saveOrder, type OrderItem } from "@/lib/orders";
 
 export type SizeOption = { label: string; price: number };
 
@@ -25,6 +27,7 @@ export function sizesOf(p: Product): SizeOption[] {
 
 const WHATSAPP_NUMBER = "26653378522";
 const NOTICE = "Please place your order at least 2 days before the day you need your baked goods.";
+const CATEGORY_ORDER = ["Biscuits", "Rusks", "Mini Cakes", "Muffins & Scones", "Tartlets"];
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -40,6 +43,21 @@ function orderReference() {
   return `HT-${Date.now().toString(36).toUpperCase().slice(-6)}`;
 }
 
+async function loadLogo(): Promise<string | null> {
+  try {
+    const res = await fetch(logoAsset.url);
+    const blob = await res.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
 export function OrderModal({
   product,
   products,
@@ -51,9 +69,7 @@ export function OrderModal({
 }) {
   const minDate = startOfDay(addDays(new Date(), 2));
 
-  const [lines, setLines] = useState<Line[]>([
-    { product, qty: 1, size: sizesOf(product)[0]! },
-  ]);
+  const [lines, setLines] = useState<Line[]>([{ product, qty: 1, size: sizesOf(product)[0]! }]);
   const [search, setSearch] = useState("");
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -63,6 +79,7 @@ export function OrderModal({
   const [notes, setNotes] = useState("");
   const [reference] = useState(orderReference);
   const [touched, setTouched] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const currency = product.currency;
   const total = lines.reduce((sum, l) => sum + Number(l.size.price) * l.qty, 0);
@@ -76,10 +93,12 @@ export function OrderModal({
       p.category.toLowerCase().includes(query) ||
       lines.some((l) => l.product.id === p.id),
   );
-  const grouped = visible.reduce<Record<string, Product[]>>((acc, p) => {
-    (acc[p.category] ??= []).push(p);
+  const grouped = [...visible.reduce<Map<string, Product[]>>((acc, p) => {
+    acc.set(p.category, [...(acc.get(p.category) ?? []), p]);
     return acc;
-  }, {});
+  }, new Map())].sort(
+    (a, b) => (CATEGORY_ORDER.indexOf(a[0]) + 1 || 99) - (CATEGORY_ORDER.indexOf(b[0]) + 1 || 99),
+  );
 
   function toggleProduct(p: Product) {
     setLines((prev) =>
@@ -103,13 +122,43 @@ export function OrderModal({
     );
   }
 
+  function orderItems(): OrderItem[] {
+    return lines.map((l) => ({
+      name: l.product.name,
+      category: l.product.category,
+      size: l.size.label,
+      qty: l.qty,
+      unit_price: Number(l.size.price),
+      line_total: Number(l.size.price) * l.qty,
+    }));
+  }
+
   function summaryLines() {
     return lines.map(
       (l) =>
-        `• ${l.product.name} (${l.size.label}) x${l.qty} — ${l.product.currency} ${(Number(l.size.price) * l.qty).toFixed(2)}`,
+        `• ${l.product.name} — ${l.size.label} x${l.qty} — ${l.product.currency} ${(Number(l.size.price) * l.qty).toFixed(2)}`,
     );
   }
 
+  async function persist() {
+    if (saved || !date) return;
+    try {
+      await saveOrder({
+        reference,
+        customer_name: name.trim(),
+        phone: phone.trim(),
+        occasion: occasion.trim() || null,
+        needed_date: format(date, "yyyy-MM-dd"),
+        notes: notes.trim() || null,
+        items: orderItems(),
+        total,
+        currency,
+      });
+      setSaved(true);
+    } catch (err) {
+      console.error("Could not save order", err);
+    }
+  }
 
   function buildMessage() {
     return [
@@ -132,16 +181,14 @@ export function OrderModal({
       .join("\n");
   }
 
-  function sendWhatsApp() {
+  async function sendWhatsApp() {
     if (!valid) {
       setTouched(true);
       return;
     }
-    window.open(
-      `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildMessage())}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildMessage())}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+    await persist();
   }
 
   async function downloadPdf() {
@@ -149,56 +196,142 @@ export function OrderModal({
       setTouched(true);
       return;
     }
-    const { jsPDF } = await import("jspdf");
+    const [{ jsPDF }, logo] = await Promise.all([import("jspdf"), loadLogo()]);
     const doc = new jsPDF({ unit: "pt", format: "a4" });
-    let y = 60;
-    doc.setFontSize(22);
-    doc.text("Homely Taste", 48, y);
-    doc.setFontSize(11);
-    y += 18;
-    doc.text("Handcrafted Delights for Every Occasion", 48, y);
-    y += 30;
-    doc.setFontSize(14);
-    doc.text(`Order form — ${reference}`, 48, y);
-    doc.setFontSize(11);
-    y += 26;
-    const rows = [
-      `Name: ${name.trim()}`,
-      `Contact: ${phone.trim()}`,
-      `Collection / delivery date: ${date ? format(date, "EEEE, d MMMM yyyy") : "-"}`,
-      occasion.trim() ? `Occasion: ${occasion.trim()}` : "",
-      `Ordered on: ${format(new Date(), "d MMMM yyyy")}`,
-    ].filter(Boolean);
-    rows.forEach((r) => {
-      doc.text(r, 48, y);
-      y += 18;
-    });
-    y += 12;
-    doc.setFontSize(13);
-    doc.text("Items", 48, y);
-    doc.setFontSize(11);
-    y += 20;
-    summaryLines().forEach((l) => {
-      doc.text(l.replace("• ", "- "), 48, y);
-      y += 18;
-    });
-    y += 6;
-    doc.setFontSize(13);
-    doc.text(`Total: ${currency} ${total.toFixed(2)}`, 48, y);
-    doc.setFontSize(11);
-    if (notes.trim()) {
-      y += 26;
-      doc.text(doc.splitTextToSize(`Notes: ${notes.trim()}`, 500), 48, y);
-      y += 18 * doc.splitTextToSize(`Notes: ${notes.trim()}`, 500).length;
+    const pageW = doc.internal.pageSize.getWidth();
+    const brown: [number, number, number] = [43, 26, 18];
+    const gold: [number, number, number] = [212, 175, 55];
+    const cream: [number, number, number] = [245, 241, 232];
+
+    // Header band
+    doc.setFillColor(...brown);
+    doc.rect(0, 0, pageW, 120, "F");
+    if (logo) {
+      try {
+        doc.addImage(logo, "PNG", 40, 22, 76, 76);
+      } catch {
+        /* ignore unsupported image */
+      }
     }
-    y += 30;
+    doc.setTextColor(...gold);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(26);
+    doc.text("Homely Taste", logo ? 132 : 40, 58);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(245, 241, 232);
+    doc.setFontSize(11);
+    doc.text("Handcrafted Delights for Every Occasion", logo ? 132 : 40, 78);
     doc.setFontSize(10);
-    doc.text(doc.splitTextToSize(NOTICE, 500), 48, y);
-    y += 28;
-    doc.text("Calls: (+266) 62119056  ·  WhatsApp: (+266) 53378522", 48, y);
+    doc.text(`Order form · ${reference}`, logo ? 132 : 40, 96);
+
+    // Gold rule
+    doc.setFillColor(...gold);
+    doc.rect(0, 120, pageW, 5, "F");
+
+    // Customer details card
+    let y = 155;
+    doc.setFillColor(...cream);
+    doc.roundedRect(40, y, pageW - 80, 96, 10, 10, "F");
+    doc.setTextColor(...brown);
+    doc.setFontSize(11);
+    const details: [string, string][] = [
+      ["Name", name.trim()],
+      ["Contact", phone.trim()],
+      ["Needed on", date ? format(date, "EEEE, d MMMM yyyy") : "-"],
+      ["Occasion", occasion.trim() || "—"],
+    ];
+    let dy = y + 24;
+    details.forEach(([label, value]) => {
+      doc.setFont("helvetica", "bold");
+      doc.text(`${label}:`, 58, dy);
+      doc.setFont("helvetica", "normal");
+      doc.text(value, 140, dy);
+      dy += 19;
+    });
+    y += 126;
+
+    // Items table
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.text("Your Order", 40, y);
     y += 14;
-    doc.text("homelytaste.25@gmail.com", 48, y);
+
+    const cols = [46, 220, 330, 400, 470];
+    doc.setFillColor(...brown);
+    doc.rect(40, y, pageW - 80, 24, "F");
+    doc.setTextColor(...gold);
+    doc.setFontSize(10);
+    doc.text("Item", cols[0]!, y + 16);
+    doc.text("Category", cols[1]!, y + 16);
+    doc.text("Size", cols[2]!, y + 16);
+    doc.text("Qty", cols[3]!, y + 16);
+    doc.text("Amount", cols[4]!, y + 16);
+    y += 24;
+
+    doc.setFont("helvetica", "normal");
+    orderItems().forEach((item, i) => {
+      if (y > 720) {
+        doc.addPage();
+        y = 60;
+      }
+      if (i % 2 === 0) {
+        doc.setFillColor(250, 247, 240);
+        doc.rect(40, y, pageW - 80, 22, "F");
+      }
+      doc.setTextColor(...brown);
+      doc.setFontSize(10);
+      doc.text(doc.splitTextToSize(item.name, 165)[0] ?? item.name, cols[0]!, y + 15);
+      doc.text(item.category, cols[1]!, y + 15);
+      doc.text(doc.splitTextToSize(item.size, 62)[0] ?? item.size, cols[2]!, y + 15);
+      doc.text(String(item.qty), cols[3]!, y + 15);
+      doc.text(`${currency} ${item.line_total.toFixed(2)}`, cols[4]!, y + 15);
+      y += 22;
+    });
+
+    // Total bar
+    y += 10;
+    doc.setFillColor(...gold);
+    doc.roundedRect(pageW - 260, y, 220, 34, 8, 8, "F");
+    doc.setTextColor(...brown);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.text("TOTAL", pageW - 244, y + 22);
+    doc.text(`${currency} ${total.toFixed(2)}`, pageW - 60, y + 22, { align: "right" });
+    y += 60;
+
+    if (notes.trim()) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text("Special requests", 40, y);
+      y += 16;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      const wrapped = doc.splitTextToSize(notes.trim(), pageW - 100);
+      doc.text(wrapped, 40, y);
+      y += wrapped.length * 14 + 10;
+    }
+
+    // Notice + footer
+    doc.setFillColor(...cream);
+    doc.roundedRect(40, y, pageW - 80, 40, 8, 8, "F");
+    doc.setTextColor(...brown);
+    doc.setFontSize(10);
+    doc.text(doc.splitTextToSize(NOTICE, pageW - 120), 56, y + 24);
+
+    const footerY = doc.internal.pageSize.getHeight() - 54;
+    doc.setFillColor(...brown);
+    doc.rect(0, footerY, pageW, 54, "F");
+    doc.setTextColor(245, 241, 232);
+    doc.setFontSize(9);
+    doc.text("Calls: (+266) 62119056   ·   WhatsApp: (+266) 53378522", 40, footerY + 22);
+    doc.text("homelytaste.25@gmail.com", 40, footerY + 38);
+    doc.setTextColor(...gold);
+    doc.text(`Ordered on ${format(new Date(), "d MMMM yyyy")}`, pageW - 40, footerY + 22, {
+      align: "right",
+    });
+
     doc.save(`Homely-Taste-Order-${reference}.pdf`);
+    await persist();
   }
 
   const inputClass =
@@ -239,55 +372,120 @@ export function OrderModal({
 
         {/* Items */}
         <div className="mt-6">
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary">Choose items</p>
-          <div className="mt-3 space-y-2">
-            {products.map((p) => {
-              const line = lines.find((l) => l.product.id === p.id);
-              return (
-                <div
-                  key={p.id}
-                  className={cn(
-                    "flex items-center gap-3 rounded-2xl border p-2.5 transition-colors",
-                    line ? "border-primary bg-primary/5" : "border-border",
-                  )}
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleProduct(p)}
-                    className="flex flex-1 items-center gap-3 text-left"
-                  >
-                    <img src={p.image_url} alt="" className="h-11 w-11 rounded-xl object-cover" />
-                    <span className="flex-1">
-                      <span className="block text-sm font-semibold">{p.name}</span>
-                      <span className="block text-xs text-muted-foreground">
-                        {p.currency} {Number(p.price).toFixed(2)}
-                      </span>
-                    </span>
-                  </button>
-                  {line && (
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        aria-label={`Decrease ${p.name}`}
-                        onClick={() => setQty(p.id, line.qty - 1)}
-                        className="h-7 w-7 rounded-full bg-muted text-sm font-bold"
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold uppercase tracking-widest text-primary">
+              Choose items
+            </p>
+            <span className="text-xs text-muted-foreground">{lines.length} selected</span>
+          </div>
+          <input
+            className={inputClass}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search items or categories…"
+          />
+
+          <div className="mt-3 max-h-80 space-y-4 overflow-y-auto pr-1">
+            {grouped.map(([category, items]) => (
+              <div key={category}>
+                <p className="sticky top-0 bg-card py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  {category}
+                </p>
+                <div className="space-y-2">
+                  {items.map((p) => {
+                    const line = lines.find((l) => l.product.id === p.id);
+                    const sizes = sizesOf(p);
+                    return (
+                      <div
+                        key={p.id}
+                        className={cn(
+                          "rounded-2xl border p-2.5 transition-colors",
+                          line ? "border-primary bg-primary/5" : "border-border",
+                        )}
                       >
-                        −
-                      </button>
-                      <span className="w-6 text-center text-sm font-semibold">{line.qty}</span>
-                      <button
-                        type="button"
-                        aria-label={`Increase ${p.name}`}
-                        onClick={() => setQty(p.id, line.qty + 1)}
-                        className="h-7 w-7 rounded-full bg-muted text-sm font-bold"
-                      >
-                        +
-                      </button>
-                    </div>
-                  )}
+                        <button
+                          type="button"
+                          onClick={() => toggleProduct(p)}
+                          className="flex w-full items-center gap-3 text-left"
+                        >
+                          <img
+                            src={p.image_url}
+                            alt=""
+                            className="h-11 w-11 rounded-xl object-cover"
+                          />
+                          <span className="flex-1">
+                            <span className="block text-sm font-semibold">{p.name}</span>
+                            <span className="block text-xs text-muted-foreground">
+                              from {p.currency}{" "}
+                              {Math.min(...sizes.map((s) => Number(s.price))).toFixed(2)}
+                            </span>
+                          </span>
+                          <span
+                            className={cn(
+                              "rounded-full px-3 py-1 text-xs font-semibold",
+                              line
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted text-muted-foreground",
+                            )}
+                          >
+                            {line ? "Added" : "Add"}
+                          </span>
+                        </button>
+
+                        {line && (
+                          <div className="mt-3 flex flex-wrap items-center gap-3">
+                            <label className="flex-1 text-xs font-medium text-muted-foreground">
+                              Size / quantity per pack
+                              <select
+                                value={line.size.label}
+                                onChange={(e) => setSize(p.id, e.target.value)}
+                                className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                              >
+                                {sizes.map((s) => (
+                                  <option key={s.label} value={s.label}>
+                                    {s.label} — {p.currency} {Number(s.price).toFixed(2)}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <div className="text-xs font-medium text-muted-foreground">
+                              How many
+                              <div className="mt-1 flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  aria-label={`Decrease ${p.name}`}
+                                  onClick={() => setQty(p.id, line.qty - 1)}
+                                  className="h-8 w-8 rounded-full bg-muted text-sm font-bold"
+                                >
+                                  −
+                                </button>
+                                <span className="w-7 text-center text-sm font-semibold text-foreground">
+                                  {line.qty}
+                                </span>
+                                <button
+                                  type="button"
+                                  aria-label={`Increase ${p.name}`}
+                                  onClick={() => setQty(p.id, line.qty + 1)}
+                                  className="h-8 w-8 rounded-full bg-muted text-sm font-bold"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                            <p className="text-sm font-semibold text-primary">
+                              {p.currency} {(Number(line.size.price) * line.qty).toFixed(2)}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              </div>
+            ))}
+            {grouped.length === 0 && (
+              <p className="py-4 text-center text-sm text-muted-foreground">No items match.</p>
+            )}
           </div>
         </div>
 
@@ -388,8 +586,13 @@ export function OrderModal({
           onClick={downloadPdf}
           className="mt-3 w-full rounded-full border-2 border-accent px-6 py-3 text-sm font-semibold transition-colors hover:bg-accent hover:text-accent-foreground"
         >
-          Download order form (PDF) to attach
+          Download order form (PDF) — best for large orders
         </button>
+        {saved && (
+          <p className="mt-3 text-center text-xs font-medium text-primary">
+            Your order has been recorded with the bakery.
+          </p>
+        )}
         <p className="mt-2 text-center text-xs text-muted-foreground">
           WhatsApp cannot attach files automatically — download the PDF, then attach it in the chat
           if you'd like a printed copy of your order.
