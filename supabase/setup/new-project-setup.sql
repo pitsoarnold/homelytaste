@@ -15,6 +15,11 @@ create table if not exists public.products (
   size_options jsonb not null default '[]'::jsonb
 );
 
+alter table public.products add column if not exists size_options jsonb not null default '[]'::jsonb;
+alter table public.products add column if not exists category text not null default 'Bakery';
+alter table public.products add column if not exists is_bestseller boolean not null default false;
+alter table public.products add column if not exists sort_order integer not null default 0;
+
 grant select on public.products to anon, authenticated;
 grant all on public.products to service_role;
 alter table public.products enable row level security;
