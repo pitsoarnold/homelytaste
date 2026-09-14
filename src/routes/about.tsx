@@ -10,12 +10,13 @@ export const Route = createFileRoute("/about")({
       {
         name: "description",
         content:
-          "Homely Taste is a home bakery baking biscuits, rusks, muffins, scones and tartlets by hand in small batches, fresh for every order.",
+          "Meet Homely Taste, an artisanal micro-confectionery creating small-batch sweet and savoury treats, custom orders and event catering.",
       },
       { property: "og:title", content: "Our Story — Homely Taste Home Bakery" },
       {
         property: "og:description",
-        content: "Baked at home, made with heart — small batches, real ingredients, real care.",
+        content:
+          "Premium small-batch treats, curated platters and custom catering for gatherings, celebrations and corporate occasions.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -41,15 +42,16 @@ function AboutPage() {
               Our Story
             </p>
             <h1 className="mt-3 text-4xl font-semibold md:text-5xl">
-              Baked at Home, Made with Heart
+              Familiar Flavours, Thoughtfully Reimagined
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
-              Homely Taste began in a family kitchen with a simple belief: the best treats are the
-              ones made by hand, in small batches, with real ingredients and real care.
+              Homely Taste is an artisanal micro-confectionery crafting premium sweet and savoury
+              treats for everyday indulgence, personal milestones and memorable gatherings.
             </p>
             <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-              Every order is baked fresh for you — which is why we ask for at least 2 days' notice.
-              Good things take a little time.
+              We pair the comfort of nostalgic flavours with modern, sophisticated combinations.
+              Every collection is made in small batches with careful technique, quality ingredients
+              and a distinctly homemade touch.
             </p>
           </div>
         </div>
@@ -59,16 +61,19 @@ function AboutPage() {
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 md:grid-cols-2">
           <div className="order-2 md:order-1">
             <h2 className="text-3xl font-semibold text-secondary-foreground md:text-4xl">
-              What We Bake
+              Sweet Treats & Savoury Tables
             </h2>
             <ul className="mt-6 space-y-3 text-lg text-secondary-foreground/80">
-              <li>✦ Biscuits and cookies, from melting moments to Biscoff</li>
-              <li>✦ Buttermilk, condensed milk, seed and fruit rusk bites</li>
-              <li>✦ Mini cakes, boat cakes and tiramisu ice-box cakes</li>
-              <li>✦ Muffins and scones by the box</li>
-              <li>✦ Tartlets — milk tart, lemon meringue, brownie and more</li>
+              <li>✦ Artisan biscuits, cookies, rusks and traditional biscotti</li>
+              <li>✦ Scones, muffins, cupcakes, brownies and cinnamon rolls</li>
+              <li>✦ Sweet tartlets, dessert cups and seasonal pastry boxes</li>
+              <li>✦ Meaty, vegetarian, cold meat, cheese and breakfast platters</li>
+              <li>✦ Sandwiches, pickles, crudités and handcrafted signature dips</li>
             </ul>
-            <p className="mt-6 text-secondary-foreground/70">{NOTICE}</p>
+            <p className="mt-6 text-secondary-foreground/70">
+              Our pre-order approach keeps every batch fresh and considered, whether you are
+              arranging a collection, a scheduled delivery or tailored catering for an event. {NOTICE}
+            </p>
             <Link
               to="/menu"
               className="mt-8 inline-block rounded-full bg-accent px-8 py-3.5 text-base font-semibold text-accent-foreground transition-transform hover:scale-[1.03]"
