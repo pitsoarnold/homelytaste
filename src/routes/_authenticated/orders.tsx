@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,12 +45,20 @@ function OrdersPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-primary">Bakery</p>
           <h1 className="mt-2 font-display text-4xl font-semibold">Order History</h1>
         </div>
-        <button
-          onClick={signOut}
-          className="rounded-full border border-border px-5 py-2 text-sm font-medium hover:bg-muted"
-        >
-          Sign out
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/settings"
+            className="rounded-full border border-border px-5 py-2 text-sm font-medium hover:bg-muted"
+          >
+            Site settings
+          </Link>
+          <button
+            onClick={signOut}
+            className="rounded-full border border-border px-5 py-2 text-sm font-medium hover:bg-muted"
+          >
+            Sign out
+          </button>
+        </div>
       </div>
 
       {isLoading && <p className="mt-10 text-muted-foreground">Loading orders…</p>}

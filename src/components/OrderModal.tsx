@@ -2,8 +2,13 @@ import { useState } from "react";
 import { format, addDays, startOfDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import logoAsset from "@/assets/logo.asset.json";
 import { saveOrder, type OrderItem } from "@/lib/orders";
+import {
+  CONTACT_EMAIL,
+  NOTICE,
+  WHATSAPP_NUMBER,
+  whatsappUrl,
+} from "@/lib/site";
 
 export type SizeOption = { label: string; price: number };
 
@@ -25,8 +30,6 @@ export function sizesOf(p: Product): SizeOption[] {
   return Array.isArray(s) && s.length > 0 ? s : [{ label: "Standard", price: Number(p.price) }];
 }
 
-const WHATSAPP_NUMBER = "26653378522";
-const NOTICE = "Please place your order at least 2 days before the day you need your baked goods.";
 const CATEGORY_ORDER = ["Biscuits", "Rusks", "Mini Cakes", "Muffins & Scones", "Tartlets"];
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -45,7 +48,7 @@ function orderReference() {
 
 async function loadLogo(): Promise<string | null> {
   try {
-    const res = await fetch(logoAsset.url);
+    const res = await fetch("/logo.jpg");
     const blob = await res.blob();
     return await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
@@ -186,7 +189,7 @@ export function OrderModal({
       setTouched(true);
       return;
     }
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildMessage())}`;
+    const url = whatsappUrl(WHATSAPP_NUMBER, buildMessage());
     window.open(url, "_blank", "noopener,noreferrer");
     await persist();
   }
@@ -208,7 +211,7 @@ export function OrderModal({
     doc.rect(0, 0, pageW, 120, "F");
     if (logo) {
       try {
-        doc.addImage(logo, "PNG", 40, 22, 76, 76);
+        doc.addImage(logo, "JPEG", 40, 22, 76, 76);
       } catch {
         /* ignore unsupported image */
       }
@@ -323,8 +326,9 @@ export function OrderModal({
     doc.rect(0, footerY, pageW, 54, "F");
     doc.setTextColor(245, 241, 232);
     doc.setFontSize(9);
-    doc.text("Calls: (+266) 62119056   ·   WhatsApp: (+266) 53378522", 40, footerY + 22);
-    doc.text("homelytaste.25@gmail.com", 40, footerY + 38);
+    doc.text("+266 53378522 — Calls & WhatsApp", 40, footerY + 16);
+    doc.text("+266 62119056 — Calls only", 40, footerY + 30);
+    doc.text(CONTACT_EMAIL, 40, footerY + 44);
     doc.setTextColor(...gold);
     doc.text(`Ordered on ${format(new Date(), "d MMMM yyyy")}`, pageW - 40, footerY + 22, {
       align: "right",

@@ -63,7 +63,7 @@ function AuthPage() {
     <section className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-16">
       <h1 className="font-display text-4xl font-semibold">Bakery sign in</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Order history is private. Sign in with homelytaste.25@gmail.com to view customer orders.
+        Sign in with the bakery owner account to manage orders and site settings.
       </p>
       <form onSubmit={submit} className="mt-8 space-y-4">
         <label className="block text-sm font-medium">

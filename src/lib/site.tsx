@@ -1,27 +1,55 @@
 import { queryOptions } from "@tanstack/react-query";
 import { getProducts } from "@/lib/products.functions";
 import type { Product } from "@/components/OrderModal";
-
-export const WHATSAPP_NUMBER = "26653378522";
-export const CALL_NUMBER = "(+266) 62119056";
-export const WHATSAPP_DISPLAY = "(+266) 53378522";
-export const EMAIL = "homelytaste.25@gmail.com";
-export const NOTICE =
-  "Please place your order at least 2 days before the day you need your baked goods.";
+import { getSiteSettings, type SiteSettings } from "@/lib/site-settings.functions";
 
 export const CATEGORY_ORDER = ["Biscuits", "Rusks", "Mini Cakes", "Muffins & Scones", "Tartlets"];
+export const WHATSAPP_NUMBER = "26653378522";
+export const CALL_NUMBER = "26662119056";
+export const CONTACT_EMAIL = "info@homelytaste.co.ls";
+export const NOTICE =
+  "Please place your order at least 2 days before the day you need your baked goods. A 50% deposit guarantees your order.";
 
 export const productsQuery = queryOptions({
   queryKey: ["products"],
   queryFn: () => getProducts() as Promise<Product[]>,
+  staleTime: 0,
+  refetchOnMount: "always",
+  refetchOnWindowFocus: true,
 });
 
-export function whatsappLink(productName?: string) {
+export const siteSettingsQuery = queryOptions({
+  queryKey: ["site-settings"],
+  queryFn: getSiteSettings,
+  staleTime: 0,
+  refetchOnMount: "always",
+  refetchOnWindowFocus: true,
+});
+
+export function phoneHref(number: string) {
+  const digits = number.replace(/\D/g, "");
+  return `tel:+${digits.startsWith("266") ? digits : `266${digits}`}`;
+}
+
+export function displayPhone(number: string) {
+  const digits = number.replace(/\D/g, "");
+  return digits.startsWith("266") ? `+266 ${digits.slice(3)}` : `+266 ${digits}`;
+}
+
+export function whatsappLink(number = WHATSAPP_NUMBER, productName?: string) {
   const message = productName
     ? `Hello Homely Taste! I would like to order ${productName}. Please confirm availability.`
     : "Hello Homely Taste! I would like to place an order.";
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  return whatsappUrl(number, message);
 }
+
+export function whatsappUrl(number: string, message: string) {
+  const digits = number.replace(/\D/g, "");
+  const internationalNumber = digits.startsWith("266") ? digits : `266${digits}`;
+  return `https://wa.me/${internationalNumber}?text=${encodeURIComponent(message)}`;
+}
+
+export type { SiteSettings };
 
 export function groupByCategory(products: Product[]) {
   const map = new Map<string, Product[]>();

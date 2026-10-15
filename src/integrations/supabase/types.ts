@@ -104,6 +104,51 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_branch_code: string | null
+          bank_name: string | null
+          calls_number: string | null
+          contact_email: string | null
+          deposit_notice: string | null
+          id: string
+          mpesa_merchant_code: string | null
+          mpesa_merchant_name: string | null
+          updated_at: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch_code?: string | null
+          bank_name?: string | null
+          calls_number?: string | null
+          contact_email?: string | null
+          deposit_notice?: string | null
+          id?: string
+          mpesa_merchant_code?: string | null
+          mpesa_merchant_name?: string | null
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch_code?: string | null
+          bank_name?: string | null
+          calls_number?: string | null
+          contact_email?: string | null
+          deposit_notice?: string | null
+          id?: string
+          mpesa_merchant_code?: string | null
+          mpesa_merchant_name?: string | null
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

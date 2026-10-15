@@ -168,7 +168,6 @@ function Home() {
             </h2>
             <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
               Small batches, real ingredients and real care — every order is baked fresh for you.
-              {" "}
               {NOTICE}
             </p>
             <div className="mt-8 flex flex-wrap gap-4">

@@ -67,6 +67,59 @@ drop trigger if exists update_orders_updated_at on public.orders;
 create trigger update_orders_updated_at before update on public.orders
   for each row execute function public.update_updated_at_column();
 
+create table if not exists public.site_settings (
+  id uuid primary key default gen_random_uuid(),
+  contact_email text,
+  whatsapp_number text,
+  calls_number text,
+  deposit_notice text,
+  bank_name text,
+  bank_branch_code text,
+  bank_account_number text,
+  bank_account_name text,
+  mpesa_merchant_code text,
+  mpesa_merchant_name text,
+  updated_at timestamptz not null default now()
+);
+
+grant select on public.site_settings to anon, authenticated;
+grant update on public.site_settings to authenticated;
+grant all on public.site_settings to service_role;
+alter table public.site_settings enable row level security;
+
+drop policy if exists "Anyone can view site settings" on public.site_settings;
+create policy "Anyone can view site settings" on public.site_settings
+  for select to anon, authenticated using (true);
+
+drop policy if exists "Owner can update site settings" on public.site_settings;
+create policy "Owner can update site settings" on public.site_settings
+  for update to authenticated
+  using (lower(auth.jwt() ->> 'email') = 'homelytaste.25@gmail.com')
+  with check (lower(auth.jwt() ->> 'email') = 'homelytaste.25@gmail.com');
+
+drop trigger if exists update_site_settings_updated_at on public.site_settings;
+create trigger update_site_settings_updated_at before update on public.site_settings
+  for each row execute function public.update_updated_at_column();
+
+insert into public.site_settings (
+  id, contact_email, whatsapp_number, calls_number, deposit_notice, bank_name,
+  bank_branch_code, bank_account_number, bank_account_name,
+  mpesa_merchant_code, mpesa_merchant_name
+) values (
+  '6a5ddf65-1da6-4419-9d32-c94c77c6965e',
+  null,
+  '26653378522',
+  '26662119056',
+  '50% deposit gaurantees an order placement',
+  'First National Bank',
+  '280061',
+  '63220526941',
+  'Homely Taste',
+  '68666',
+  'Homely Taste'
+)
+on conflict (id) do nothing;
+
 -- Menu items (36)
 delete from public.products;
 INSERT INTO public.products (id,name,description,image_url,price,currency,category,is_bestseller,sort_order,size_options) VALUES ('dd419731-6231-4829-822c-e722e135bdad'::uuid,'Melting Moments Biscuits','Buttery, crumbly biscuits that melt the moment they touch your tongue.','/__l5e/assets-v1/608da2c2-7c62-4446-bcef-5a412a2d56f0/cookies.jpeg',50.00,'LSL','Biscuits',true,10,'[{"label": "Cookie Boat", "price": 50}, {"label": "2.5 Litres", "price": 180}, {"label": "5 Litres", "price": 330}, {"label": "10 Litres", "price": 450}]'::jsonb);

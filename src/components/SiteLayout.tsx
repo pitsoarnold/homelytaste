@@ -1,14 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import logoAsset from "@/assets/logo.asset.json";
-import {
-  CALL_NUMBER,
-  EMAIL,
-  NOTICE,
-  WHATSAPP_DISPLAY,
-  WhatsAppIcon,
-  whatsappLink,
-} from "@/lib/site";
+import { ContactDetails } from "@/components/ContactDetails";
+import { NOTICE, WhatsAppIcon, whatsappLink } from "@/lib/site";
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -35,10 +28,16 @@ export function SiteLayout({ children }: { children: ReactNode }) {
       <NoticeBanner />
 
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-          <Link to="/" className="flex items-center gap-3">
-            <img src={logoAsset.url} alt="Homely Taste logo" className="h-12 w-auto rounded-full" />
-            <span className="font-display text-2xl font-semibold tracking-wide">Homely Taste</span>
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 leading-none">
+          <Link to="/" className="flex items-center gap-3 leading-none">
+            <img
+              src="/logo.jpg"
+              alt="Homely Taste logo"
+              className="block h-12 w-auto object-contain"
+            />
+            <span className="font-display text-2xl leading-none font-semibold tracking-wide">
+              Homely Taste
+            </span>
           </Link>
           <nav className="hidden items-center gap-8 text-sm font-medium tracking-wide md:flex">
             {navLinks.map((l) => (
@@ -83,7 +82,11 @@ export function SiteLayout({ children }: { children: ReactNode }) {
 
       <footer className="bg-secondary py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 text-center">
-          <img src={logoAsset.url} alt="Homely Taste logo" className="h-16 w-auto rounded-full" />
+          <img
+            src="/logo.jpg"
+            alt="Homely Taste logo"
+            className="block h-16 w-auto object-contain"
+          />
           <p className="font-display text-xl text-secondary-foreground">
             Handcrafted Delights for Every Occasion
           </p>
@@ -94,9 +97,9 @@ export function SiteLayout({ children }: { children: ReactNode }) {
               </Link>
             ))}
           </nav>
-          <p className="text-sm text-secondary-foreground/60">
-            Calls: {CALL_NUMBER} · WhatsApp: {WHATSAPP_DISPLAY} · {EMAIL}
-          </p>
+          <div className="text-secondary-foreground/80">
+            <ContactDetails />
+          </div>
           <p className="text-xs text-secondary-foreground/40">
             © {new Date().getFullYear()} Homely Taste. All rights reserved.
           </p>

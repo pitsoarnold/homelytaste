@@ -72,7 +72,8 @@ function AboutPage() {
             </ul>
             <p className="mt-6 text-secondary-foreground/70">
               Our pre-order approach keeps every batch fresh and considered, whether you are
-              arranging a collection, a scheduled delivery or tailored catering for an event. {NOTICE}
+              arranging a collection, a scheduled delivery or tailored catering for an event.{" "}
+              {NOTICE}
             </p>
             <Link
               to="/menu"
